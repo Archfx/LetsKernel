@@ -75,3 +75,45 @@ WARNING: modpost: missing MODULE_LICENSE() in /home/user/Documents/LinuxKernel/H
   LD [M]  /home/user/Documents/LinuxKernel/HelloWorldKernel/src/hello-1.ko
 make[1]: Leaving directory '/usr/src/linux-headers-5.8.0-59-generic'
 ```
+
+This will generate kernel object files (\*.ko) which carry extra information than the normal object (\*.o) files. This extra information can be elaborated using `modinfo` command.
+
+```shell
+hostname:~/…/LinuxKernel/HelloWorldKernel/src $ modinfo hello-1.ko
+filename:       /home/user/Documents/LinuxKernel/HelloWorldKernel/src/hello-1.ko
+srcversion:     140276773A3090F6F33891F
+depends:        
+retpoline:      Y
+name:           hello_1
+vermagic:       5.8.0-59-generic SMP mod_unload modversions 
+```
+
+Hello World example does not contain much of details yet since it just performs a write to the log file.
+
+
+Insert in to Kernel
+---
+
+Now we have the compiled kernel module, we just need to insert it into the linux kernel. For that we are using `insmod` command.
+
+```shell
+hostname:~/…/LinuxKernel/HelloWorldKernel/src $  sudo insmod ./hello-1.ko
+```
+
+we can look into the kernel log file (`/var/log/syslog`), whether the "Hello World" message got logged in.
+
+```shell
+hostname:~/…/src $ sudo cat /var/log/syslog | grep 'Hello world'
+May 17 15:43:36 eslab1 kernel: [2585797.085213] Hello world 1.
+```
+
+Remove a Kernel
+---
+
+We can just remove a kernel module from the kernel by simply using `rmmod` command.
+
+```shell
+hostname:~/…/src $  sudo rmmod hello-1
+```
+
+In this tutorial, we looked at the process of writing a simple Linux kernel module and linked it to the kernel of the Ubuntu operating system. In the next tutorial, let's look at how we can compile kernel modules that span across multiple files and how to use command line inputs with kernel modules.
