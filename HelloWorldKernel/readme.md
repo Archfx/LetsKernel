@@ -21,7 +21,7 @@ Hello World
 
 ```c
 /*
- * hello−1.c − The simplest kernel module.
+ * hello-1.c - The simplest kernel module.
  */
 #include <linux/module.h> /* Needed by all modules */
 #include <linux/kernel.h> /* Needed for KERN_INFO */
@@ -55,11 +55,11 @@ Compile the Kernel Module
 ---
 There is a generic Makefile structure that is dedicated to compile kernel modules.
 ```Makefile
-obj−m += hello−1.o
+obj-m += hello-1.o
 all:
- make −C /lib/modules/$(shell uname −r)/build M=$(PWD) modules
+ make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 clean:
- make −C /lib/modules/$(shell uname −r)/build M=$(PWD) clean
+ make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
 ```
 
 Once you compile the modules, it will show you the following results on the terminal.
@@ -116,4 +116,44 @@ We can just remove a kernel module from the kernel by simply using `rmmod` comma
 hostname:~/…/src $  sudo rmmod hello-1
 ```
 
-In this tutorial, we looked at the process of writing a simple Linux kernel module and linked it to the kernel of the Ubuntu operating system. In the next tutorial, let's look at how we can compile kernel modules that span across multiple files and how to use command line inputs with kernel modules.
+Spaning Kernel Modules
+----
+
+In reallity, the Kernel module implementations span across multiple source files. Compiling them to one is just a matter of modifying the Makefile. Lets consider the following hello world program that utilize `linux/init.h`. This header file defines new marcos for the methods that we used in `hello_1.c`. Here `init_module()` is replaces by `module_init()` and `cleanup_module()` is replaced by `module_exit()`.
+
+
+```c
+/*
+ * hello-2.c - Demonstrating the module_init() and module_exit() macros.
+ * This is preferred over using init_module() and cleanup_module().
+ */
+#include <linux/module.h> /* Needed by all modules */
+#include <linux/kernel.h> /* Needed for KERN_INFO */
+#include <linux/init.h> /* Needed for the macros */
+static int __init hello_2_init(void)
+{
+ printk(KERN_INFO "Hello, world 2\n");
+ return 0;
+}
+static void __exit hello_2_exit(void)
+{
+ printk(KERN_INFO "Goodbye, world 2\n");
+}
+module_init(hello_2_init);
+module_exit(hello_2_exit);
+```
+
+
+Now we have to modify the Makefile such that the `hello-2.c` file is included in the sources for compile.
+
+```makefile
+obj-m += hello-1.o
+obj-m += hello-2.o
+all:
+ make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+clean:
+ make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+```
+
+
+In this tutorial, we looked at the process of writing a simple Linux kernel module and linked it to the kernel of the Ubuntu operating system. In the next tutorial, let's look at how to use command line inputs with kernel modules.
