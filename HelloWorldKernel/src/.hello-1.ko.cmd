@@ -1,1 +1,0 @@
-cmd_/home/aruna/Documents/LinuxKernel/HelloWorldKernel/src/hello-1.ko := ld -r -m elf_x86_64  -z max-page-size=0x200000  --build-id=sha1  -T ./scripts/module-common.lds -o /home/aruna/Documents/LinuxKernel/HelloWorldKernel/src/hello-1.ko /home/aruna/Documents/LinuxKernel/HelloWorldKernel/src/hello-1.o /home/aruna/Documents/LinuxKernel/HelloWorldKernel/src/hello-1.mod.o;  true

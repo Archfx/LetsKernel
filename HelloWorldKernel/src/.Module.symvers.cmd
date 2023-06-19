@@ -1,1 +1,0 @@
-cmd_/home/aruna/Documents/LinuxKernel/HelloWorldKernel/src/Module.symvers := sed 's/ko$$/o/' /home/aruna/Documents/LinuxKernel/HelloWorldKernel/src/modules.order | scripts/mod/modpost -m -a   -o /home/aruna/Documents/LinuxKernel/HelloWorldKernel/src/Module.symvers -e -i Module.symvers   -T -
