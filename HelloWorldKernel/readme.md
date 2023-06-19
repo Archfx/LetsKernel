@@ -21,7 +21,7 @@ Hello World
 
 ```c
 /*
- * hello−1.c − The simplest kernel module.
+ * hello-1.c - The simplest kernel module.
  */
 #include <linux/module.h> /* Needed by all modules */
 #include <linux/kernel.h> /* Needed for KERN_INFO */
@@ -55,11 +55,11 @@ Compile the Kernel Module
 ---
 There is a generic Makefile structure that is dedicated to compile kernel modules.
 ```Makefile
-obj−m += hello−1.o
+obj-m += hello-1.o
 all:
- make −C /lib/modules/$(shell uname −r)/build M=$(PWD) modules
+ make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 clean:
- make −C /lib/modules/$(shell uname −r)/build M=$(PWD) clean
+ make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
 ```
 
 Once you compile the modules, it will show you the following results on the terminal.
@@ -91,10 +91,10 @@ vermagic:       5.8.0-59-generic SMP mod_unload modversions
 Hello World example does not contain much of details yet since it just performs a write to the log file.
 
 
-Insert in to Kernel
+Insert into Kernel
 ---
 
-Now we have the compiled kernel module, we just need to insert it into the linux kernel. For that we are using `insmod` command.
+Now we have the compiled kernel module, we just need to insert it into the Linux kernel. For that, we are using `insmod` command.
 
 ```shell
 hostname:~/…/LinuxKernel/HelloWorldKernel/src $  sudo insmod ./hello-1.ko
@@ -115,6 +115,47 @@ We can just remove a kernel module from the kernel by simply using `rmmod` comma
 ```shell
 hostname:~/…/src $  sudo rmmod hello-1
 ```
+
+Spaning Kernel Modules
+---
+
+In reality, the Kernel module implementations span across multiple source files. Compiling them into one is just a matter of modifying the Makefile. Let's consider the following hello world program that utilizes `linux/`init.h`. This header file defines new marcos for the methods that we used in `hello_1.c`. Here `init_module()` is replaces by `module_init()` and `cleanup_module()` is replaced by `module_exit()`.
+
+
+```c
+/*
+ * hello-2.c - Demonstrating the module_init() and module_exit() macros.
+ * This is preferred over using init_module() and cleanup_module().
+ */
+#include <linux/module.h> /* Needed by all modules */
+#include <linux/kernel.h> /* Needed for KERN_INFO */
+#include <linux/init.h> /* Needed for the macros */
+static int __init hello_2_init(void)
+{
+ printk(KERN_INFO "Hello, world 2\n");
+ return 0;
+}
+static void __exit hello_2_exit(void)
+{
+ printk(KERN_INFO "Goodbye, world 2\n");
+}
+module_init(hello_2_init);
+module_exit(hello_2_exit);
+```
+
+
+Now we have to modify the Makefile such that the `hello-2.c` file is included in the sources for compile.
+
+```makefile
+obj-m += hello-1.o
+obj-m += hello-2.o
+all:
+ make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+clean:
+ make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+```
+
+
 
 Command Line Args
 ----
@@ -230,3 +271,4 @@ xxx hostname kernel: [5435833.841260] got 1 arguments for myintArray. <br>
 
 
 In this tutorial, we looked at the process of writing a simple Linux kernel module and linked it to the kernel of the Ubuntu operating system. Finally, we looked at how to use command line inputs with kernel modules. In the text post, we will look at how to write a simple kernel driver to control external devices.
+
