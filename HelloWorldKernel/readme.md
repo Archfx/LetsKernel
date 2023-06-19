@@ -257,8 +257,7 @@ hostname:~/…/src $ sudo insmod hello-5.ko mystring="bebop" mybyte=255 myintArr
 hostname:~/…/src $ sudo cat /var/log/syslog 
 ```
 
-<code>
-xxx hostname kernel: [5435833.841255] Hello, world 5 <br>
+<code>xxx hostname kernel: [5435833.841255] Hello, world 5 <br>
 xxx hostname kernel: [5435833.841255] ============= <br>
 xxx hostname kernel: [5435833.841256] myshort is a short integer: 1 <br>
 xxx hostname kernel: [5435833.841257] myint is an integer: 420 <br>
@@ -266,8 +265,7 @@ xxx hostname kernel: [5435833.841258] mylong is a long integer: 9999 <br>
 xxx hostname kernel: [5435833.841258] mystring is a string: bebop <br>
 xxx hostname kernel: [5435833.841259] myintArray[0] = -1 <br>
 xxx hostname kernel: [5435833.841260] myintArray[1] = -1 <br>
-xxx hostname kernel: [5435833.841260] got 1 arguments for myintArray. <br>
-</code>
+xxx hostname kernel: [5435833.841260] got 1 arguments for myintArray.</code>
 
 
 In this tutorial, we looked at the process of writing a simple Linux kernel module and linked it to the kernel of the Ubuntu operating system. Finally, we looked at how to use command line inputs with kernel modules. In the text post, we will look at how to write a simple kernel driver to control external devices.
