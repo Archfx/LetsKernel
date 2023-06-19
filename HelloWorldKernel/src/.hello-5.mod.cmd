@@ -1,0 +1,1 @@
+cmd_/home/aruna/Documents/LinuxKernel/HelloWorldKernel/src/hello-5.mod := { echo  /home/aruna/Documents/LinuxKernel/HelloWorldKernel/src/hello-5.o;  echo; } > /home/aruna/Documents/LinuxKernel/HelloWorldKernel/src/hello-5.mod

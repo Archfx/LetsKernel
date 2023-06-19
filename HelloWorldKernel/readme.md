@@ -104,7 +104,7 @@ we can look into the kernel log file (`/var/log/syslog`), whether the "Hello Wor
 
 ```shell
 hostname:~/…/src $ sudo cat /var/log/syslog | grep 'Hello world'
-May 17 15:43:36 eslab1 kernel: [2585797.085213] Hello world 1.
+May 17 15:43:36 hostname kernel: [2585797.085213] Hello world 1.
 ```
 
 Remove a Kernel
@@ -116,4 +116,117 @@ We can just remove a kernel module from the kernel by simply using `rmmod` comma
 hostname:~/…/src $  sudo rmmod hello-1
 ```
 
-In this tutorial, we looked at the process of writing a simple Linux kernel module and linked it to the kernel of the Ubuntu operating system. In the next tutorial, let's look at how we can compile kernel modules that span across multiple files and how to use command line inputs with kernel modules.
+Command Line Args
+----
+
+Finally, let's look at how to pass command line arguments to the programs during the `insmod` process. To enable passing command line arguments to your module, you need to declare the variables that will store the argument values as global variables. Then, you can use the `module_param()` macro, defined in `linux/moduleparam.h` to set up the mechanism. During runtime, when using `insmod`, the variables will be populated with the provided command line arguments. For example, `./insmod mymodule.ko myvariable=5` would assign the value 5 to the variable `myvariable`. To ensure clarity, it is recommended to place the variable declarations and macros at the beginning of the module. The below example code will help clarify the process.
+
+```c
+int myint = 3;
+module_param(myint, int, 0);
+```
+
+The `module_param()` macro expects three arguments: the variable's name, its type, and the permissions for the corresponding file in the sysfs. Integer types can be signed or unsigned as needed. If you want to work with arrays of integers or strings, you can refer to the `module_param_array()` and `module_param_string()` macros. Arrays are indeed supported for passing command line arguments to modules. To keep track of the number of parameters, you now need to provide a pointer to a count variable as the third parameter. Alternatively, you have the option to ignore the count and pass NULL instead. Here, following example demonstrate both possibilitie,
+
+```c
+int myintarray[2];
+module_param_array(myintarray, int, NULL, 0); /* not interested in count */
+int myshortarray[4];
+int count;
+module_parm_array(myshortarray, short, , 0); /* put count into "count" variable */
+```
+
+One practical use of this approach is to set default values for module variables, such as a port or IO address. By assigning default values to the variables, you can perform autodetection if the variables still hold the default values. Otherwise, you can retain the current values. This concept will be further explained in subsequent sections.
+
+Additionally, there is a macro function called `MODULE_PARM_DESC()` that serves the purpose of documenting the arguments that a module can accept. It requires two parameters: the variable name and a descriptive string that provides information about the variable. This allows for better documentation and understanding of the module's usage.
+
+Following is the complete code that can be used to pass command line parameters
+
+```c
+/*
+ * hello-5.c - Demonstrates command line argument passing to a module.
+ */
+#include <linux/module.h>
+#include <linux/moduleparam.h>
+#include <linux/kernel.h>
+#include <linux/init.h>
+#include <linux/stat.h>
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Peter Jay Salzman");
+static short int myshort = 1;
+static int myint = 420;
+static long int mylong = 9999;
+static char *mystring = "blah";
+static int myintArray[2] = { -1, -1 };
+static int arr_argc = 0;
+/*
+ * module_param(foo, int, 0000)
+ * The first param is the parameters name
+ * The second param is it's data type
+ * The final argument is the permissions bits,
+ * for exposing parameters in sysfs (if non-zero) at a later stage.
+ */
+module_param(myshort, short, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+MODULE_PARM_DESC(myshort, "A short integer");
+module_param(myint, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+MODULE_PARM_DESC(myint, "An integer");
+module_param(mylong, long, S_IRUSR);
+MODULE_PARM_DESC(mylong, "A long integer");
+module_param(mystring, charp, 0000);
+MODULE_PARM_DESC(mystring, "A character string");
+/*
+ * module_param_array(name, type, num, perm);
+ * The first param is the parameter's (in this case the array's) name
+ * The second param is the data type of the elements of the array
+ * The third argument is a pointer to the variable that will store the number
+ * of elements of the array initialized by the user at module loading time
+ * The fourth argument is the permission bits
+ */
+module_param_array(myintArray, int, &arr_argc, 0000);
+MODULE_PARM_DESC(myintArray, "An array of integers");
+static int __init hello_5_init(void)
+{
+ int i;
+ printk(KERN_INFO "Hello, world 5\n=============\n");
+ printk(KERN_INFO "myshort is a short integer: %hd\n", myshort);
+ printk(KERN_INFO "myint is an integer: %d\n", myint);
+ printk(KERN_INFO "mylong is a long integer: %ld\n", mylong);
+ printk(KERN_INFO "mystring is a string: %s\n", mystring);
+ for (i = 0; i < (sizeof myintArray / sizeof (int)); i++)
+ {
+ printk(KERN_INFO "myintArray[%d] = %d\n", i, myintArray[i]);
+ }
+ printk(KERN_INFO "got %d arguments for myintArray.\n", arr_argc);
+ return 0;
+}
+static void __exit hello_5_exit(void)
+{
+ printk(KERN_INFO "Goodbye, world 5\n");
+}
+module_init(hello_5_init);
+module_exit(hello_5_exit);
+```
+
+
+After correctly referring to the `hello-5.c` in the Makefile, you can build the `hello-5.ko` and now you can pass command line args into the kernel module as we discussed earlier.
+
+
+```shell
+hostname:~/…/src $ sudo insmod hello-5.ko mystring="bebop" mybyte=255 myintArray=-1
+hostname:~/…/src $ sudo cat /var/log/syslog 
+```
+
+<code>
+xxx hostname kernel: [5435833.841255] Hello, world 5 <br>
+xxx hostname kernel: [5435833.841255] ============= <br>
+xxx hostname kernel: [5435833.841256] myshort is a short integer: 1 <br>
+xxx hostname kernel: [5435833.841257] myint is an integer: 420 <br>
+xxx hostname kernel: [5435833.841258] mylong is a long integer: 9999 <br>
+xxx hostname kernel: [5435833.841258] mystring is a string: bebop <br>
+xxx hostname kernel: [5435833.841259] myintArray[0] = -1 <br>
+xxx hostname kernel: [5435833.841260] myintArray[1] = -1 <br>
+xxx hostname kernel: [5435833.841260] got 1 arguments for myintArray. <br>
+</code>
+
+
+In this tutorial, we looked at the process of writing a simple Linux kernel module and linked it to the kernel of the Ubuntu operating system. Finally, we looked at how to use command line inputs with kernel modules. In the text post, we will look at how to write a simple kernel driver to control external devices.
